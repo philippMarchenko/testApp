@@ -20,9 +20,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-
-
-
         if(!isMyServiceRunning(ServiceRoutes.class)) {
             Intent intent = new Intent(this, ServiceRoutes.class);
             startService(intent);

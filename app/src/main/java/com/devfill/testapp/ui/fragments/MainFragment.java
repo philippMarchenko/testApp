@@ -38,7 +38,6 @@ public class MainFragment extends android.support.v4.app.Fragment{
         dbHelper = new DBHelper(getContext());
         db = dbHelper.getWritableDatabase();
 
-
         tableLayout =  rootView.findViewById(R.id.tableLayout);
         tableLayout.setColumnShrinkable(0,true);
 
@@ -80,28 +79,27 @@ public class MainFragment extends android.support.v4.app.Fragment{
 
 
 
+
                 TextView textView = new TextView(getContext());
-                textView.setText(c.getString(infoColIndex));
+                textView.setText(" " + c.getString(infoColIndex) + " ");
                 tableRow.addView(textView,0);
 
                 textView = new TextView(getContext());
-                textView.setText(c.getString(from_dateColIndex));
+                textView.setText(" " + c.getString(from_dateColIndex) + " ");
                 tableRow.addView(textView,1);
 
                 textView = new TextView(getContext());
-                textView.setText(c.getString(from_timeColIndex));
+                textView.setText(" " + c.getString(from_timeColIndex) + " ");
                 tableRow.addView(textView,2);
 
                 textView = new TextView(getContext());
-                textView.setText(c.getString(to_timeColIndex));
+                textView.setText(" " + c.getString(to_timeColIndex) + " ");
                 tableRow.addView(textView,3);
 
                 textView = new TextView(getContext());
-                textView.setText(Integer.toString(c.getInt(priceColIndex)));
+                textView.setText(" " + Integer.toString(c.getInt(priceColIndex)) + " ");
                 tableRow.addView(textView,4);
-
-               /* tableLayout.addView(tableRow);
-
+/*
                 tableRow = new TableRow(getContext());
                 View  v = new View(getContext());
                 v.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, 1));
@@ -114,6 +112,9 @@ public class MainFragment extends android.support.v4.app.Fragment{
                 tableRow.setClickable(true);
 
                 tableLayout.addView(tableRow);
+
+
+
 
                 }
                 while (c.moveToNext());

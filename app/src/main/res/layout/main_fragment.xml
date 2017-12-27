@@ -3,65 +3,88 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
- >
-
-    <android.support.v4.widget.NestedScrollView
+    >
+    <RelativeLayout
+        android:id="@+id/tableLayout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/neestedscroll">
+        android:divider="@drawable/divider"
+        android:showDividers="middle"
+        android:verticalSpacing="1dp"
+       >
+
+        <TextView
+            android:id="@+id/TextView04"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:text="Маршрут"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="serif"></TextView>
+
+        <TextView
+            android:id="@+id/TextView03"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/TextView04"
+            android:text="Дата"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="serif"></TextView>
+
+        <TextView
+            android:id="@+id/TextView02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="42dp"
+            android:layout_toRightOf="@+id/TextView03"
+            android:text="Отпр."
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="serif"></TextView>
+
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@+id/textView1"
+            android:text="Приб."
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="serif"></TextView>
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="false"
+            android:layout_marginRight="1dp"
+            android:text="Цена"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="serif"></TextView>
+
+    </RelativeLayout>
+
+    <android.support.v4.widget.NestedScrollView
+
+        android:id="@+id/neestedscroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tableLayout1"
+        android:layout_marginTop="5dp">
 
         <TableLayout
+            android:id="@+id/tableLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tableLayout"
             android:divider="@drawable/divider"
             android:showDividers="middle"
+            android:stretchColumns="*"
             android:verticalSpacing="1dp">
 
-            <TableRow
-                android:id="@+id/tableRow1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
-                <TextView
-                    android:id="@+id/TextView04"
-                    android:text="Маршрут"
-                    android:textStyle="bold"
-                    android:typeface="serif"
-                    android:textSize="12sp">
-                </TextView>
-
-                <TextView
-                    android:id="@+id/TextView03"
-                    android:text="Дата"
-                    android:textStyle="bold"
-                    android:typeface="serif"
-                    android:textSize="12sp">
-                </TextView>
-
-                <TextView
-                    android:id="@+id/TextView02"
-                    android:text="Отправление"
-                    android:textStyle="bold"
-                    android:typeface="serif"
-                    android:textSize="12sp">
-                </TextView>
-
-                <TextView
-                    android:id="@+id/TextView01"
-                    android:text="Прибытие"
-                    android:textStyle="bold"
-                    android:typeface="serif"
-                    android:textSize="12sp">
-                </TextView>
-
-                <TextView
-                    android:id="@+id/textView1"
-                    android:text="Цена"
-                    android:textStyle="bold"
-                    android:typeface="serif"
-                    android:textSize="12sp">
-                </TextView>
-            </TableRow>
         </TableLayout>
     </android.support.v4.widget.NestedScrollView>
 

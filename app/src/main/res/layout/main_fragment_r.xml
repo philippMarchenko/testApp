@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tableLayout"
+        android:divider="@drawable/divider"
+        android:showDividers="middle"
+        android:verticalSpacing="1dp"
+        >
+        <TableRow
+            android:id="@+id/tableRow1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/TextView04"
+                android:layout_width="70dp"
+                android:text="Маршрут"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:typeface="serif">
+            </TextView>
+
+            <TextView
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/TextView03"
+                android:text="Дата"
+                android:textStyle="bold"
+                android:typeface="serif"
+                android:textSize="12sp">
+            </TextView>
+
+            <TextView
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/TextView02"
+                android:text="Отправление"
+                android:textStyle="bold"
+                android:typeface="serif"
+                android:textSize="12sp">
+            </TextView>
+
+            <TextView
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/TextView01"
+                android:text="Прибытие"
+                android:textStyle="bold"
+                android:typeface="serif"
+                android:textSize="12sp">
+            </TextView>
+
+            <TextView
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/textView1"
+                android:text="Цена"
+                android:textStyle="bold"
+                android:typeface="serif"
+                android:textSize="12sp">
+            </TextView>
+        </TableRow>
+    </TableLayout>
+
+
+    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/tableLayout"
+        android:clipToPadding="false"
+        android:paddingBottom="40dp"
+        android:scrollbars="none">
+
+    </com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView>
+
+
+</RelativeLayout>
