@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+ >
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/neestedscroll">
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tableLayout"
+            android:divider="@drawable/divider"
+            android:showDividers="middle"
+            android:verticalSpacing="1dp">
+
+            <TableRow
+                android:id="@+id/tableRow1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+                <TextView
+                    android:id="@+id/TextView04"
+                    android:text="Маршрут"
+                    android:textStyle="bold"
+                    android:typeface="serif"
+                    android:textSize="12sp">
+                </TextView>
+
+                <TextView
+                    android:id="@+id/TextView03"
+                    android:text="Дата"
+                    android:textStyle="bold"
+                    android:typeface="serif"
+                    android:textSize="12sp">
+                </TextView>
+
+                <TextView
+                    android:id="@+id/TextView02"
+                    android:text="Отправление"
+                    android:textStyle="bold"
+                    android:typeface="serif"
+                    android:textSize="12sp">
+                </TextView>
+
+                <TextView
+                    android:id="@+id/TextView01"
+                    android:text="Прибытие"
+                    android:textStyle="bold"
+                    android:typeface="serif"
+                    android:textSize="12sp">
+                </TextView>
+
+                <TextView
+                    android:id="@+id/textView1"
+                    android:text="Цена"
+                    android:textStyle="bold"
+                    android:typeface="serif"
+                    android:textSize="12sp">
+                </TextView>
+            </TableRow>
+        </TableLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+
+
+</RelativeLayout>
