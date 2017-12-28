@@ -6,12 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.widget.Toast;
 
 
 import com.devfill.testapp.model.Data;
@@ -160,7 +157,6 @@ public class ServiceRoutes extends Service {
         int clearCount = db.delete(table, null, null);
         db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" + table + "'");
         Log.d(LOG_TAG, "deleted rows count = " + clearCount);
-     //   db.close();
     }
 
     private static void sendEvent (Context context,int event,String error) {
@@ -221,7 +217,6 @@ public class ServiceRoutes extends Service {
 
 
         Log.d(LOG_TAG, "--- onCreate database ---");
-     //   db.close();
 
     }
 

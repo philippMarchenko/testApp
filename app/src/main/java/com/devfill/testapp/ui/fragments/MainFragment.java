@@ -11,8 +11,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -197,26 +195,6 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
         Cursor c = db.query("routes", null, null, null, null, null, null);
 
-       /* if (c.move(start)) {
-            int id_routeColIndex = c.getColumnIndex("id_route");
-            int from_city_nameColIndex = c.getColumnIndex("from_city_name");
-            int from_city_highlightColIndex = c.getColumnIndex("from_city_highlight");
-            int from_city_idColIndex = c.getColumnIndex("from_city_id");
-            int from_dateColIndex = c.getColumnIndex("from_date");
-            int from_timeColIndex = c.getColumnIndex("from_time");
-            int from_infoColIndex = c.getColumnIndex("from_info");
-            int to_city_nameColIndex = c.getColumnIndex("to_city_name");
-            int to_city_highlightColIndex = c.getColumnIndex("to_city_highlight");
-            int to_city_idColIndex = c.getColumnIndex("to_city_id");
-            int infoColIndex = c.getColumnIndex("info");
-            int to_dateColIndex = c.getColumnIndex("to_date");
-            int to_timeColIndex = c.getColumnIndex("to_time");
-            int to_infoColIndex = c.getColumnIndex("to_info");
-            int priceColIndex = c.getColumnIndex("price");
-            int bus_idColIndex = c.getColumnIndex("bus_id");
-            int reservation_countColIndex = c.getColumnIndex("reservation_count");
-
-   */
         progressBar.setVisibility(View.INVISIBLE);
 
         int from_dateColIndex = c.getColumnIndex("from_date");
@@ -224,7 +202,6 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         int infoColIndex = c.getColumnIndex("info");
         int to_timeColIndex = c.getColumnIndex("to_time");
         int priceColIndex = c.getColumnIndex("price");
-        int id_routeColIndex = c.getColumnIndex("id_route");
 
       for(int i = start ; i < end; i++){
 

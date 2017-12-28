@@ -10,7 +10,7 @@ import retrofit2.http.Url;
 
 public interface ServerAPI {
 
-    public static final String BASE_URL = "http://projects.gmoby.org/";
+    String BASE_URL = "http://projects.gmoby.org/";
 
 
     @GET("/web/index.php/api/trips")
