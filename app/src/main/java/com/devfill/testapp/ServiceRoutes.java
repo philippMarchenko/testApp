@@ -12,6 +12,7 @@ import android.util.Log;
 
 
 import com.devfill.testapp.model.Data;
+import com.devfill.testapp.model.DataRealm;
 import com.devfill.testapp.model.RouteModel;
 import com.devfill.testapp.network.ServerAPI;
 import com.devfill.testapp.ui.fragments.MainFragment;
@@ -19,6 +20,7 @@ import com.devfill.testapp.ui.fragments.MainFragment;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.Realm;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -36,6 +38,8 @@ public class ServiceRoutes extends Service {
     private DBHelper dbHelper;
     private SQLiteDatabase db;
 
+    private Realm mRealm;
+
     private Retrofit retrofit;
     private ServerAPI serverAPI;
 
@@ -47,15 +51,14 @@ public class ServiceRoutes extends Service {
 
         dbHelper = new DBHelper(getBaseContext());
 
-        try{
-            createTableSim(db);
-        }
-        catch(Exception e){
-        }
-
         initRetrofit();
 
         if(!isTableExists("routes",true)){
+            try{
+                createTableSim(db);
+            }
+            catch(Exception e){
+            }
             getRoutes();
         }
     }
@@ -83,13 +86,22 @@ public class ServiceRoutes extends Service {
                         final List<Data> dataList =  routeModel.getData();
 
                         if(dataList.size() > 0){
-                            Thread t = new Thread(new Runnable() {
+                         /*   Thread t = new Thread(new Runnable() {
                                 @Override
                                 public void run() {
                                     saveDataInDB(dataList);
                                 }
                             });
+                            t.start();*/
+                            Thread t = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mRealm = Realm.getInstance(getBaseContext());
+                                    saveDataInRealm(dataList);
+                                }
+                            });
                             t.start();
+
                         }
                         else{
                           sendEvent(getBaseContext(),MainFragment.EVENT_DATA_EMPTY,"");
@@ -106,6 +118,49 @@ public class ServiceRoutes extends Service {
 
                 Log.i(LOG_TAG, "Ошибка REST запроса к серверу  getListNews " + e.getMessage());
             }
+    }
+
+    private void saveDataInRealm (List<Data> list){
+
+        mRealm.beginTransaction();
+        mRealm.clear(DataRealm.class);
+        mRealm.commitTransaction();
+
+        for(int i = 0; i < list.size(); i++){
+
+            mRealm.beginTransaction();
+
+            DataRealm dataRealm = new DataRealm();
+
+            dataRealm.setId_route(list.get(i).getId());
+            dataRealm.setFrom_city_name(list.get(i).getFromCity().getName());
+            dataRealm.setFrom_city_highlight(list.get(i).getFromCity().getHighlight());
+            dataRealm.setFrom_city_id(list.get(i).getFromCity().getId());
+            dataRealm.setFrom_date(list.get(i).getFromDate());
+            dataRealm.setFrom_time(list.get(i).getFromTime());
+            dataRealm.setFrom_info(list.get(i).getFromInfo());
+            dataRealm.setTo_city_name(list.get(i).getToCity().getName());
+            dataRealm.setTo_city_highlight(list.get(i).getToCity().getHighlight());
+            dataRealm.setTo_city_id(list.get(i).getToCity().getId());
+            dataRealm.setInfo(list.get(i).getInfo());
+            dataRealm.setTo_date(list.get(i).getToDate());
+            dataRealm.setTo_time(list.get(i).getToTime());
+            dataRealm.setTo_info(list.get(i).getToInfo());
+            dataRealm.setPrice(list.get(i).getPrice());
+            dataRealm.setBus_id(list.get(i).getBusId());
+            dataRealm.setReservation_coun(list.get(i).getReservationCount());
+
+            mRealm.copyToRealm(dataRealm);
+
+            mRealm.commitTransaction();
+
+            if(i == 200){
+                sendEvent(getBaseContext(),MainFragment.EVENT_DATA_UPDATED,"");
+            }
+            Log.d(LOG_TAG, "row inserted i " + i);
+
+        }
+        Log.d(LOG_TAG, "row inserted, ID = InRealm ");
     }
 
     private void saveDataInDB (List<Data> list){
@@ -151,15 +206,23 @@ public class ServiceRoutes extends Service {
 
     private void cleanTable(String table) {
 
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        Log.d(LOG_TAG, "--- Clear table " + table);
-        int clearCount = db.delete(table, null, null);
-        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" + table + "'");
-        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+        try {
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            Log.d(LOG_TAG, "--- Clear table " + table);
+            int clearCount = db.delete(table, null, null);
+            db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" + table + "'");
+            Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+        }
+        catch (Exception e ){
+
+        }
+
+
     }
 
-    private static void sendEvent (Context context,int event,String error) {
+    private void sendEvent (Context context,int event,String error) {
+        Log.d(LOG_TAG, "sendEvent ");
 
         final Intent intent = new Intent(MainFragment.UPDATED_DATA_ACTION);
         intent.putExtra("event",event);
@@ -170,6 +233,7 @@ public class ServiceRoutes extends Service {
         } catch (Error e) {
             e.printStackTrace();
         }
+
 
     }
 
@@ -221,26 +285,32 @@ public class ServiceRoutes extends Service {
     }
 
     private boolean isTableExists(String tableName, boolean openDb) {
-        if(openDb) {
-            if(db == null || !db.isOpen()) {
+        if (openDb) {
+            if (db == null || !db.isOpen()) {
                 db = dbHelper.getReadableDatabase();
             }
 
-            if(!db.isReadOnly()) {
+            if (!db.isReadOnly()) {
                 db.close();
                 db = dbHelper.getReadableDatabase();
             }
         }
 
-        Cursor cursor = db.rawQuery("select DISTINCT tbl_name from sqlite_master where tbl_name = '"+tableName+"'", null);
-        if(cursor!=null) {
-            if(cursor.getCount()>0) {
+        Cursor cursor = db.rawQuery("select DISTINCT tbl_name from sqlite_master where tbl_name = '" + tableName + "'", null);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
                 cursor.close();
                 return true;
             }
             cursor.close();
         }
         return false;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mRealm.close();
     }
 
     @Nullable

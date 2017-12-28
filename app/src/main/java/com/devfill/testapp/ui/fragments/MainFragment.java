@@ -28,6 +28,10 @@ import android.widget.Toast;
 import com.devfill.testapp.DBHelper;
 import com.devfill.testapp.R;
 import com.devfill.testapp.ServiceRoutes;
+import com.devfill.testapp.model.DataRealm;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class MainFragment extends android.support.v4.app.Fragment implements SwipeRefreshLayout.OnRefreshListener{
 
@@ -55,12 +59,16 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
     private int start = 0;
     private int end = 50;
 
+    private Realm mRealm;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
 
         dbHelper = new DBHelper(getContext());
         db = dbHelper.getWritableDatabase();
+        mRealm = Realm.getInstance(getContext());
 
         nestedScrollView =  rootView.findViewById(R.id.neestedscroll);
         progressBar =  rootView.findViewById(R.id.progressBar);
@@ -74,8 +82,11 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         tableLayout.setColumnShrinkable(0,true);
 
         if(isTableExists("routes",true)){
-          showTable();
+      //    showTable();
+
         }
+
+        showTableFromRealm();
 
         nestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
@@ -86,7 +97,9 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                     progressBar.setVisibility(View.VISIBLE);
                     start = end;
                     end = end + 50;
-                    showTable();
+                 //   showTable();
+                    showTableFromRealm();
+
                     initTableListener();
 
                 }
@@ -105,7 +118,9 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                         tableLayout.removeAllViews();
                         start = 0;
                         end = 50;
-                        showTable();
+                      //  showTable();
+                        showTableFromRealm();
+
                         initTableListener();
                         progressDialog.dismiss();
                         break;
@@ -243,6 +258,62 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
     }
 
+    private void showTableFromRealm(){
+
+        progressBar.setVisibility(View.INVISIBLE);
+
+        try {
+            RealmResults<DataRealm> realmCities= mRealm.where(DataRealm.class).findAllAsync();
+            //fetching the data
+            realmCities.load();
+
+            Log.i(LOG_TAG, "realmCities size " + realmCities.size());
+
+            for(int i = start ; i < end; i++){
+
+                DataRealm dataRealm = realmCities.get(i);
+
+                TableRow tableRow = new TableRow(getContext());
+                tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
+                TextView textView = new TextView(getContext());
+                textView.setText(dataRealm.getInfo());
+                tableRow.addView(textView,0);
+
+                textView = new TextView(getContext());
+                textView.setText(" " + dataRealm.getFrom_date() + " ");
+                tableRow.addView(textView,1);
+
+                textView = new TextView(getContext());
+                textView.setText(" " + dataRealm.getFrom_time() + " ");
+                tableRow.addView(textView,2);
+
+                textView = new TextView(getContext());
+                textView.setText(" " + dataRealm.getTo_time() + " ");
+                tableRow.addView(textView,3);
+
+                textView = new TextView(getContext());
+                textView.setText(" " + Integer.toString(dataRealm.getPrice()) + " ");
+                tableRow.addView(textView,4);
+
+                TypedValue outValue = new TypedValue();
+                getContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                tableRow.setBackgroundResource(outValue.resourceId);
+                tableRow.setClickable(true);
+
+                tableLayout.addView(tableRow);
+            }
+        }
+        catch (Exception e){
+
+        }
+
+
+
+
+
+    }
+
     public boolean isTableExists(String tableName, boolean openDb) {
         if(openDb) {
             if(db == null || !db.isOpen()) {
@@ -282,6 +353,20 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         }
 
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mRealm.close();
+        if (ServiceRoutes.brRegistered == true) {
+            try {
+                getActivity().unregisterReceiver(br);
+                ServiceRoutes.brRegistered = false;
+            } catch (IllegalArgumentException e) {
+                Log.d(LOG_TAG, "Error unregisterReceiver" + e.getMessage());
+            }
+        }
     }
 
     private void initProgressDialog(){
