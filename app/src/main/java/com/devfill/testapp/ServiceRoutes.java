@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.devfill.testapp.model.Data;
 import com.devfill.testapp.model.RouteModel;
 import com.devfill.testapp.network.ServerAPI;
+import com.devfill.testapp.ui.fragments.MainFragment;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -32,10 +33,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ServiceRoutes extends Service {
 
-
     final String LOG_TAG = "serviceTag";
     final String request_url = "from_date=2016-01-01&to_date=2018-03-01";
-
 
     private DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -43,36 +42,40 @@ public class ServiceRoutes extends Service {
     private Retrofit retrofit;
     private ServerAPI serverAPI;
 
+    public static boolean brRegistered = false;
+
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreateService");
 
-
         dbHelper = new DBHelper(getBaseContext());
-        db = dbHelper.getWritableDatabase();
-
-
 
         try{
             createTableSim(db);
         }
         catch(Exception e){
-
         }
 
         initRetrofit();
-        getRoutes();
 
-
+        if(!isTableExists("routes",true)){
+            getRoutes();
+        }
     }
 
-    void getRoutes(){
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        int task = intent.getIntExtra("task",255);
 
-        String netType = getNetworkType(getBaseContext());
-        if(netType == null){
-            Toast.makeText(getBaseContext(), "Подключение к сети отсутствует!", Toast.LENGTH_LONG).show();
+        if(task == MainFragment.TASK_UPDATE_DATA){
+            Log.d(LOG_TAG, " TASK_UPDATE_DATA ");
+            getRoutes();
         }
-        else {
+
+        return START_STICKY;
+    }
+
+    private void getRoutes(){
+
             try {
 
                 serverAPI.getRoutes(request_url).enqueue(new Callback<RouteModel>() {
@@ -80,19 +83,25 @@ public class ServiceRoutes extends Service {
                     public void onResponse(Call<RouteModel> call, Response<RouteModel> response) {
 
                         RouteModel routeModel = response.body();
-                        List<Data> dataList =  routeModel.getData();
+                        final List<Data> dataList =  routeModel.getData();
 
-                        saveDataInDB(dataList);
-
+                        if(dataList.size() > 0){
+                            Thread t = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    saveDataInDB(dataList);
+                                }
+                            });
+                            t.start();
+                        }
+                        else{
+                          sendEvent(getBaseContext(),MainFragment.EVENT_DATA_EMPTY,"");
+                        }
                         Log.i(LOG_TAG, "size " + routeModel.getData().size() );
-
                     }
-
                     @Override
                     public void onFailure(Call<RouteModel> call, Throwable t) {
-
-                        Toast.makeText(getBaseContext(), "Ошибка запроса к серверу!" + t.getMessage(), Toast.LENGTH_LONG).show();
-
+                        sendEvent(getBaseContext(),MainFragment.EVENT_DATA_ERROR,t.getMessage());
                         Log.i(LOG_TAG, "onFailure. Ошибка REST запроса getListNews " + t.toString());
                     }
                 });
@@ -100,16 +109,17 @@ public class ServiceRoutes extends Service {
 
                 Log.i(LOG_TAG, "Ошибка REST запроса к серверу  getListNews " + e.getMessage());
             }
-        }
     }
 
+    private void saveDataInDB (List<Data> list){
 
-    void saveDataInDB (List<Data> list){
+        db = dbHelper.getWritableDatabase();
+
+        cleanTable("routes");
 
         ContentValues cv = new ContentValues();
-       // Cursor c = db.query("routes", null, null, null, null, null, null);
 
-        for(int i = 0 ; i < 10; i ++){
+        for(int i = 0 ; i < list.size(); i ++){
 
             cv.put("id_route", list.get(i).getId());
             cv.put("from_city_name", list.get(i).getFromCity().getName());
@@ -133,7 +143,38 @@ public class ServiceRoutes extends Service {
             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
             cv.clear();
+
+            if(i == 200){
+                sendEvent(getBaseContext(),MainFragment.EVENT_DATA_UPDATED,"");
+            }
+
         }
+
+    }
+
+    private void cleanTable(String table) {
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        Log.d(LOG_TAG, "--- Clear table " + table);
+        int clearCount = db.delete(table, null, null);
+        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" + table + "'");
+        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+     //   db.close();
+    }
+
+    private static void sendEvent (Context context,int event,String error) {
+
+        final Intent intent = new Intent(MainFragment.UPDATED_DATA_ACTION);
+        intent.putExtra("event",event);
+        intent.putExtra("error",error);
+
+        try {
+            context.sendBroadcast(intent);            //послали интент фрагменту
+        } catch (Error e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void initRetrofit (){
@@ -156,7 +197,7 @@ public class ServiceRoutes extends Service {
         serverAPI = retrofit.create(ServerAPI.class);
     }
 
-    void createTableSim(SQLiteDatabase db) {
+    private void createTableSim(SQLiteDatabase db) {
 
         db.execSQL("create table routes " + " ("
                 + "id integer primary key autoincrement,"
@@ -184,14 +225,27 @@ public class ServiceRoutes extends Service {
 
     }
 
-    private String getNetworkType(Context context) {
-        ConnectivityManager cm =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        if (activeNetwork != null) {
-            return activeNetwork.getTypeName();
+    private boolean isTableExists(String tableName, boolean openDb) {
+        if(openDb) {
+            if(db == null || !db.isOpen()) {
+                db = dbHelper.getReadableDatabase();
+            }
+
+            if(!db.isReadOnly()) {
+                db.close();
+                db = dbHelper.getReadableDatabase();
+            }
         }
-        return null;
+
+        Cursor cursor = db.rawQuery("select DISTINCT tbl_name from sqlite_master where tbl_name = '"+tableName+"'", null);
+        if(cursor!=null) {
+            if(cursor.getCount()>0) {
+                cursor.close();
+                return true;
+            }
+            cursor.close();
+        }
+        return false;
     }
 
     @Nullable

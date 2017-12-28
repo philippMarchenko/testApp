@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    >
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:text="ID маршрута"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/id_route"
+            android:textSize="18sp"
+            android:textStyle="normal|bold"
+            android:gravity="center_horizontal" />
+        <TextView
+            android:text="Город отправитель:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView"
+            android:elevation="1dp" />
+        <TextView
+            android:text="from_city_highlight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/from_city_highlight"
+            android:paddingLeft="50dp" />
+        <TextView
+            android:text="from_city_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/from_city_id"
+            android:paddingLeft="50dp" />
+        <TextView
+            android:text="from_city_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/from_city_name"
+            android:paddingLeft="50dp" />
+
+        <TextView
+            android:text="Отправление:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView2" />
+
+        <TextView
+            android:text="Дата отправления:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/from_date"
+            android:paddingLeft="50dp"/>
+        <TextView
+            android:text="Время отправления:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/from_time"
+            android:paddingLeft="50dp"/>
+        <TextView
+            android:text="Информация:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/from_info"
+            android:paddingLeft="50dp"/>
+        <TextView
+            android:text="Город прибытия:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:text="to_city_highlight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/to_city_highlight"
+            android:paddingLeft="50dp"/>
+        <TextView
+            android:text="to_city_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/to_city_id"
+            android:paddingLeft="50dp"/>
+
+        <TextView
+            android:text="to_city_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/to_city_name"
+            android:paddingLeft="50dp"/>
+
+        <TextView
+            android:text="Прибытие:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text="Дата прибытия:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/to_date"
+            android:paddingLeft="50dp" />
+
+        <TextView
+            android:text="Время прибытия"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/to_time"
+            android:paddingLeft="50dp"/>
+        <TextView
+            android:text="Информация:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/to_info"
+            android:paddingLeft="50dp"/>
+
+        <TextView
+            android:text="Общая информация:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/info" />
+
+        <TextView
+            android:text="Цена:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/price" />
+
+        <TextView
+            android:text="Номер маршрута:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/bus_id" />
+
+        <TextView
+            android:text="Зарезервировано мест:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/reservation_count" />
+    </LinearLayout>
+</RelativeLayout>
