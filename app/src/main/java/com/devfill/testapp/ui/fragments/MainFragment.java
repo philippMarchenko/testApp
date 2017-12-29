@@ -72,9 +72,6 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
         dbHelper = new DBHelper(getContext());
 
-       // FragmentTransaction ft = getFragmentManager().beginTransaction();
-      //  ft.c
-
         try{
             db = dbHelper.getWritableDatabase();
             mRealm = Realm.getInstance(getContext());
