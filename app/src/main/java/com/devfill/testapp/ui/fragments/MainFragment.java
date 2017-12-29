@@ -11,6 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -29,6 +31,7 @@ import com.devfill.testapp.DBHelper;
 import com.devfill.testapp.R;
 import com.devfill.testapp.ServiceRoutes;
 import com.devfill.testapp.model.DataRealm;
+import com.devfill.testapp.ui.MainActivity;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -61,14 +64,24 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
     private Realm mRealm;
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
 
+        Log.i(LOG_TAG, "onCreateView ");
+
         dbHelper = new DBHelper(getContext());
-        db = dbHelper.getWritableDatabase();
-        mRealm = Realm.getInstance(getContext());
+
+       // FragmentTransaction ft = getFragmentManager().beginTransaction();
+      //  ft.c
+
+        try{
+            db = dbHelper.getWritableDatabase();
+            mRealm = Realm.getInstance(getContext());
+        }
+        catch(Exception e){
+            Log.i(LOG_TAG, "Не удалось получить екземпляр БД " + e.getMessage());
+        }
 
         nestedScrollView =  rootView.findViewById(R.id.neestedscroll);
         progressBar =  rootView.findViewById(R.id.progressBar);
@@ -81,12 +94,18 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         tableLayout =  rootView.findViewById(R.id.tableLayout);
         tableLayout.setColumnShrinkable(0,true);
 
-        if(isTableExists("routes",true)){
-      //    showTable();
-
-        }
-
-        showTableFromRealm();
+        switch (ServiceRoutes.type_db){
+                case MainActivity.IDM_SQ_LITE:
+                    if(isTableExists("routes",true)){
+                        showTableSQLite();
+                    }
+                    break;
+                case MainActivity.IDM_REALM:
+                    showTableFromRealm();
+                    break;
+                default:
+                    break;
+           }
 
         nestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
@@ -97,15 +116,22 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                     progressBar.setVisibility(View.VISIBLE);
                     start = end;
                     end = end + 50;
-                 //   showTable();
-                    showTableFromRealm();
+
+                    switch (ServiceRoutes.type_db){
+                        case MainActivity.IDM_SQ_LITE:
+                            showTableSQLite();
+                            break;
+                        case MainActivity.IDM_REALM:
+                            showTableFromRealm();
+                            break;
+                        default:
+                            break;
+                    }
 
                     initTableListener();
-
                 }
             }
         });
-
 
         br = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
@@ -118,8 +144,17 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                         tableLayout.removeAllViews();
                         start = 0;
                         end = 50;
-                      //  showTable();
-                        showTableFromRealm();
+
+                        switch (ServiceRoutes.type_db){
+                            case MainActivity.IDM_SQ_LITE:
+                                showTableSQLite();
+                                break;
+                            case MainActivity.IDM_REALM:
+                                showTableFromRealm();
+                                break;
+                            default:
+                                break;
+                        }
 
                         initTableListener();
                         progressDialog.dismiss();
@@ -206,7 +241,7 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         builder.show();
     }
 
-    private void showTable(){
+    private void showTableSQLite(){
 
         Cursor c = db.query("routes", null, null, null, null, null, null);
 
@@ -264,7 +299,6 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
         try {
             RealmResults<DataRealm> realmCities= mRealm.where(DataRealm.class).findAllAsync();
-            //fetching the data
             realmCities.load();
 
             Log.i(LOG_TAG, "realmCities size " + realmCities.size());
@@ -315,31 +349,42 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
     }
 
     public boolean isTableExists(String tableName, boolean openDb) {
-        if(openDb) {
-            if(db == null || !db.isOpen()) {
-                db = dbHelper.getReadableDatabase();
-            }
 
-            if(!db.isReadOnly()) {
-                db.close();
-                db = dbHelper.getReadableDatabase();
-            }
-        }
+      try{
+          if(openDb) {
+              if(db == null || !db.isOpen()) {
+                  db = dbHelper.getReadableDatabase();
+              }
 
-        Cursor cursor = db.rawQuery("select DISTINCT tbl_name from sqlite_master where tbl_name = '"+tableName+"'", null);
-        if(cursor!=null) {
-            if(cursor.getCount()>0) {
-                cursor.close();
-                return true;
-            }
-            cursor.close();
-        }
+              if(!db.isReadOnly()) {
+                  db.close();
+                  db = dbHelper.getReadableDatabase();
+              }
+          }
+
+          Cursor cursor = db.rawQuery("select DISTINCT tbl_name from sqlite_master where tbl_name = '"+tableName+"'", null);
+          if(cursor!=null) {
+              if(cursor.getCount()>0) {
+                  cursor.close();
+                  return true;
+              }
+              cursor.close();
+          }
+      }
+      catch(Exception e){
+
+      }
         return false;
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.i(LOG_TAG, "onResume ");
+
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+
+        MainActivity.state = MainActivity.STATE_MAIN;
 
 
         try{
@@ -358,7 +403,11 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mRealm.close();
+
+       if( mRealm != null){
+           mRealm.close();
+       }
+
         if (ServiceRoutes.brRegistered == true) {
             try {
                 getActivity().unregisterReceiver(br);

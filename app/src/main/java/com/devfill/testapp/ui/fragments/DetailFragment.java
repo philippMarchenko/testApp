@@ -3,14 +3,23 @@ package com.devfill.testapp.ui.fragments;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.devfill.testapp.DBHelper;
 import com.devfill.testapp.R;
+import com.devfill.testapp.ServiceRoutes;
+import com.devfill.testapp.model.DataRealm;
+import com.devfill.testapp.ui.MainActivity;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 
 public class DetailFragment extends android.support.v4.app.Fragment {
@@ -21,6 +30,8 @@ public class DetailFragment extends android.support.v4.app.Fragment {
 
     private DBHelper dbHelper;
     private SQLiteDatabase db;
+
+    private Realm mRealm;
 
     TextView id_route;
     TextView from_city_highlight;
@@ -40,23 +51,36 @@ public class DetailFragment extends android.support.v4.app.Fragment {
     TextView bus_id;
     TextView reservation_count;
 
-
+    ViewGroup mContainer;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.datail_fragment, container, false);
-
+        mContainer = container;
         id = getArguments().getInt("id");
+        MainActivity.current_id = id;
+        MainActivity.state = MainActivity.STATE_DETAIL;
 
         initViews(rootView);
 
         dbHelper = new DBHelper(getContext());
+        mRealm = Realm.getInstance(getContext());
 
-       try{
-           db = dbHelper.getWritableDatabase();
-           showDataRoute(id);
-       }
-       catch (Exception e){
-       }
+
+        switch (ServiceRoutes.type_db){
+            case MainActivity.IDM_SQ_LITE:
+                try{
+                    db = dbHelper.getWritableDatabase();
+                    showDataRoute(id);
+                }
+                catch (Exception e){
+                }
+                break;
+            case MainActivity.IDM_REALM:
+                showDataRealm(id);
+                break;
+            default:
+                break;
+        }
 
        return rootView;
     }
@@ -131,4 +155,38 @@ public class DetailFragment extends android.support.v4.app.Fragment {
 
         }
     }
+
+    private void showDataRealm(int id){
+
+        try {
+            RealmResults<DataRealm> realmCities= mRealm.where(DataRealm.class).findAllAsync();
+            realmCities.load();
+
+            Log.i(LOG_TAG, "realmCities size " + realmCities.size());
+
+            DataRealm dataRealm = realmCities.get(id);
+
+            id_route.setText("ID маршрута " + dataRealm.getId_route());
+            from_city_highlight.setText("Highlight: " + dataRealm.getFrom_city_highlight());
+            from_city_id.setText("ID города: " + dataRealm.getFrom_city_id());
+            from_city_name.setText("Имя города: " + dataRealm.getFrom_city_name());
+            from_date.setText("Дата отправления: " + dataRealm.getFrom_date());
+            from_time.setText("Время отправления: " + dataRealm.getFrom_time());
+            from_info.setText("Информация: " + dataRealm.getFrom_info());
+            to_city_highlight.setText("Highlight: " + dataRealm.getTo_city_highlight());
+            to_city_id.setText("ID города: " + dataRealm.getTo_city_id());
+            to_city_name.setText("Имя города: " + dataRealm.getTo_city_name());
+            to_date.setText("Дата прибытия: " +  dataRealm.getTo_date());
+            to_time.setText("Время прибытия: " +  dataRealm.getTo_time());
+            to_info.setText("Информация: " +  dataRealm.getTo_info());
+            info.setText("Общая информация: " +  dataRealm.getInfo());
+            price.setText("Цена: " +  dataRealm.getPrice());
+            bus_id.setText("Номер маршрута: " +  dataRealm.getBus_id());
+            reservation_count.setText("Зарезервировано мест: " +  dataRealm.getReservation_coun());
+
+        }
+        catch (Exception e){
+        }
+    }
+
 }

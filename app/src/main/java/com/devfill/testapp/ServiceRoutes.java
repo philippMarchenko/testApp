@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
@@ -15,6 +16,7 @@ import com.devfill.testapp.model.Data;
 import com.devfill.testapp.model.DataRealm;
 import com.devfill.testapp.model.RouteModel;
 import com.devfill.testapp.network.ServerAPI;
+import com.devfill.testapp.ui.MainActivity;
 import com.devfill.testapp.ui.fragments.MainFragment;
 
 import java.util.List;
@@ -45,9 +47,21 @@ public class ServiceRoutes extends Service {
 
     public static boolean brRegistered = false;
 
+    public static final String TYPE_DB = "type_db";
+
+    public static int type_db = MainActivity.IDM_SQ_LITE;
+
+
+
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreateService");
+
+
+        SharedPreferences mySharedPreferences = getBaseContext().getSharedPreferences(TYPE_DB,getBaseContext().MODE_PRIVATE);
+
+        type_db = mySharedPreferences.getInt("db_type",MainActivity.IDM_SQ_LITE);
+        Log.d(LOG_TAG, "type_db " + type_db);
 
         dbHelper = new DBHelper(getBaseContext());
 
@@ -59,8 +73,10 @@ public class ServiceRoutes extends Service {
             }
             catch(Exception e){
             }
-            getRoutes();
         }
+
+        getRoutes();
+
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -86,21 +102,30 @@ public class ServiceRoutes extends Service {
                         final List<Data> dataList =  routeModel.getData();
 
                         if(dataList.size() > 0){
-                         /*   Thread t = new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    saveDataInDB(dataList);
-                                }
-                            });
-                            t.start();*/
-                            Thread t = new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mRealm = Realm.getInstance(getBaseContext());
-                                    saveDataInRealm(dataList);
-                                }
-                            });
-                            t.start();
+
+                            switch (type_db){
+                                case MainActivity.IDM_SQ_LITE:
+                                    Thread t = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        saveDataInDB(dataList);
+                                    }
+                                    });
+                                     t.start();
+                                    break;
+                                case MainActivity.IDM_REALM:
+                                    Thread t1 = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mRealm = Realm.getInstance(getBaseContext());
+                                            saveDataInRealm(dataList);
+                                        }
+                                    });
+                                    t1.start();
+                                    break;
+                                default:
+                                    break;
+                            }
 
                         }
                         else{
