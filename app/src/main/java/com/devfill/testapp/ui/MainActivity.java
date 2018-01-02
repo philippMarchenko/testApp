@@ -20,20 +20,20 @@ import com.devfill.testapp.ui.fragments.MainFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int IDM_SQ_LITE = 201;
+    public static final int IDM_SQ_LITE = 201;          //константы для меню выбора БД
     public static final int IDM_REALM = 202;
 
 
-    MainFragment mainFragment  = new MainFragment();
+    MainFragment mainFragment  = new MainFragment();    //создали обьект фрагмента со списком маршрутов
 
     private static final String LOG_TAG = "MainActivity";
 
-    public static final int STATE_MAIN = 0;
+    public static final int STATE_MAIN = 0;             //константы для определения типа действующего фрагмента(для востановления его после поворота)
     public static final int STATE_DETAIL = 1;
     public static int state = STATE_MAIN;
-    public static int current_id;
+    public static int current_id;                       //для хранения состояния
 
-    FragmentTransaction ft;
+    private FragmentTransaction ft;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,14 +41,14 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(LOG_TAG, "state " + state);
 
-        if(!isMyServiceRunning(ServiceRoutes.class)) {
-            Intent intent = new Intent(this, ServiceRoutes.class);
+        if(!isMyServiceRunning(ServiceRoutes.class)) {              //если сервис не запущен
+            Intent intent = new Intent(this, ServiceRoutes.class);  //запустим
             startService(intent);
         }
 
         ft = this.getSupportFragmentManager().beginTransaction();
         if(state == STATE_MAIN){
-            ft.replace(R.id.container, mainFragment);
+            ft.replace(R.id.container, mainFragment);       //востановление фрагмента после поворота
         }
         ft.commit();
     }
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
-
+        //создаем меню и его пункты
         SubMenu subMenuChooseTypePoint = menu.addSubMenu("Тип базы данных");
         subMenuChooseTypePoint.add(Menu.NONE, IDM_SQ_LITE, Menu.NONE, "Выбрать SQLite");
         subMenuChooseTypePoint.add(Menu.NONE, IDM_REALM, Menu.NONE, "Выбрать Realm");
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences mySharedPreferences = getBaseContext().getSharedPreferences(ServiceRoutes.TYPE_DB, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = mySharedPreferences.edit();
 
-        switch (item.getItemId()) {
+        switch (item.getItemId()) {                     //в зависимости от выбраного типа БД, результат сохраним в SharedPreferences
             case IDM_SQ_LITE:
                 editor.putInt("db_type", IDM_SQ_LITE);
                 editor.apply();
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt("state", state);
+        outState.putInt("state", state);                //сохраним состояние фрагмента и ID маршрута
         outState.putInt("id", current_id);
         Log.d(LOG_TAG, "onSaveInstanceState");
     }

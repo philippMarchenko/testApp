@@ -48,21 +48,22 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
     public final static String UPDATED_DATA_ACTION = "updated_data_action";
 
-    private static BroadcastReceiver br;
+    private static BroadcastReceiver br;            //приемник данных и событий с сервиса
 
-    private TableLayout tableLayout;
+    private TableLayout tableLayout;                //наша табличка
 
-    private DBHelper dbHelper;
+    private DBHelper dbHelper;                      //работаем С БД
     private SQLiteDatabase db;
+    private Realm mRealm;
 
-    private NestedScrollView nestedScrollView;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private NestedScrollView nestedScrollView;      //обьект для прослушки скролинга
+    private SwipeRefreshLayout swipeRefreshLayout;  //свайп для обновления данных
     private ProgressBar progressBar;
     private ProgressDialog  progressDialog;
-    private int start = 0;
+
+    private int start = 0;                          //переменные для подгрузки данных в таблицу
     private int end = 50;
 
-    private Realm mRealm;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -89,11 +90,11 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         swipeRefreshLayout.setOnRefreshListener(this);
 
         tableLayout =  rootView.findViewById(R.id.tableLayout);
-        tableLayout.setColumnShrinkable(0,true);
+        tableLayout.setColumnShrinkable(0,true);                    //разрешим перенос на новую строку 0 столбцу
 
-        switch (ServiceRoutes.type_db){
+        switch (ServiceRoutes.type_db){                             //в зависимости от типа БД отобразим данные с базы в таблицу
                 case MainActivity.IDM_SQ_LITE:
-                    if(isTableExists("routes",true)){
+                    if(isTableExists("routes",true)){               //есть ли такая таблица в БД
                         showTableSQLite();
                     }
                     break;
@@ -110,11 +111,11 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
                 if (scrollY == (v.getChildAt(0).getMeasuredHeight() - v.getMeasuredHeight())) {
                     Log.i(LOG_TAG, "BOTTOM SCROLL");
-                    progressBar.setVisibility(View.VISIBLE);
-                    start = end;
+                    progressBar.setVisibility(View.VISIBLE);        //докретиди до конца списка,покажем прогресбар
+                    start = end;                                    //пересохраним переменные для для подгрузки следующих 50 елементов
                     end = end + 50;
 
-                    switch (ServiceRoutes.type_db){
+                    switch (ServiceRoutes.type_db){                 //отобразим на экране в зависимости от типа БД
                         case MainActivity.IDM_SQ_LITE:
                             showTableSQLite();
                             break;
@@ -125,7 +126,7 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                             break;
                     }
 
-                    initTableListener();
+                    initTableListener();                                 //инициализация слушателя нажатия на строку в таблице
                 }
             }
         });
@@ -134,15 +135,15 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
             public void onReceive(Context context, Intent intent) {
                 Log.i(LOG_TAG, "onReceive ");
 
-                int event = intent.getIntExtra("event",255);
+                int event = intent.getIntExtra("event",255);            //принимаем событие из сервиса
 
                 switch (event){
-                    case MainFragment.EVENT_DATA_UPDATED:
-                        tableLayout.removeAllViews();
-                        start = 0;
+                    case MainFragment.EVENT_DATA_UPDATED:               //данные обновились
+                        tableLayout.removeAllViews();                   //очистим таблицу
+                        start = 0;                                      //проинициализируем переменные
                         end = 50;
 
-                        switch (ServiceRoutes.type_db){
+                        switch (ServiceRoutes.type_db){                 //отобразим на экране в зависимости от типа БД
                             case MainActivity.IDM_SQ_LITE:
                                 showTableSQLite();
                                 break;
@@ -153,25 +154,25 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                                 break;
                         }
 
-                        initTableListener();
-                        progressDialog.dismiss();
+                        initTableListener();                            //инициализация слушателя нажатия на строку в таблице
+                        progressDialog.dismiss();                       //скроем progressDialog
                         break;
-                    case MainFragment.EVENT_DATA_EMPTY:
-                        showAllertDialogListEmpty();
-                        progressDialog.dismiss();
+                    case MainFragment.EVENT_DATA_EMPTY:                 //пришел пустой список с сервера
+                        showAllertDialogListEmpty();                    //покажем сообщение
+                        progressDialog.dismiss();                       //скроем progressDialog
                         break;
-                    case MainFragment.EVENT_DATA_ERROR:
-                        showAllertDialogError(intent.getStringExtra("error"));
-                        progressDialog.dismiss();
+                    case MainFragment.EVENT_DATA_ERROR:                        //ошибка загрузки с сервера
+                        showAllertDialogError(intent.getStringExtra("error")); //покажем сообщение
+                        progressDialog.dismiss();                              //скроем progressDialog
                         break;
                 }
             }
         };
 
 
-        initTableListener();
+        initTableListener();                                        //инициализация слушателя нажатия на строку в таблице
 
-        initProgressDialog();
+        initProgressDialog();                                       //инициализация progressDialog
 
         return rootView;
     }
@@ -187,11 +188,11 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                     Log.i(LOG_TAG, "onClick getId " + tableLayout.indexOfChild(v));
 
                     Bundle bundle = new Bundle();
-                    bundle.putInt("id",tableLayout.indexOfChild(v));
+                    bundle.putInt("id",tableLayout.indexOfChild(v));        //передадим во второй фрагмент ID выбраного маршрута
                     DetailFragment detailFragment = new DetailFragment();
                     detailFragment.setArguments(bundle);
 
-                    getFragmentManager().beginTransaction()
+                    getFragmentManager().beginTransaction()                 //покажем детальный фрагмент
                             .replace(R.id.container,detailFragment)
                             .addToBackStack(null)
                             .commit();
@@ -225,7 +226,7 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         builder.setPositiveButton("Повторить!", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                requestToServer();
+                requestToServer();                                          //если нажали повторить пошлем сообщение сервису что надо повторить запрос
             }
         });
         builder.setNegativeButton("Отмена!", new DialogInterface.OnClickListener() {
@@ -250,14 +251,14 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         int to_timeColIndex = c.getColumnIndex("to_time");
         int priceColIndex = c.getColumnIndex("price");
 
-      for(int i = start ; i < end; i++){
+      for(int i = start ; i < end; i++){      //перебираем наши маршруты
 
-         if(c.moveToPosition(i)) {
+         if(c.moveToPosition(i)) {            //курсор ставим на нужное место
 
              TableRow tableRow = new TableRow(getContext());
              tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
-             TextView textView = new TextView(getContext());
+             TextView textView = new TextView(getContext());                //ложим TextView в строку
              textView.setText(" " + c.getString(infoColIndex) + " ");
              tableRow.addView(textView,0);
 
@@ -282,7 +283,7 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
              tableRow.setBackgroundResource(outValue.resourceId);
              tableRow.setClickable(true);
 
-             tableLayout.addView(tableRow);
+             tableLayout.addView(tableRow);                 //строку ложим в таблицу
          }
       }
 
@@ -300,9 +301,9 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
             Log.i(LOG_TAG, "realmCities size " + realmCities.size());
 
-            for(int i = start ; i < end; i++){
+            for(int i = start ; i < end; i++){                  //перебираем наши маршруты
 
-                DataRealm dataRealm = realmCities.get(i);
+                DataRealm dataRealm = realmCities.get(i);       //достаем нужный елемент
 
                 TableRow tableRow = new TableRow(getContext());
                 tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -313,7 +314,7 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
 
                 textView = new TextView(getContext());
                 textView.setText(" " + dataRealm.getFrom_date() + " ");
-                tableRow.addView(textView,1);
+                tableRow.addView(textView,1);                           //ложим TextView в строку
 
                 textView = new TextView(getContext());
                 textView.setText(" " + dataRealm.getFrom_time() + " ");
@@ -332,7 +333,7 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
                 tableRow.setBackgroundResource(outValue.resourceId);
                 tableRow.setClickable(true);
 
-                tableLayout.addView(tableRow);
+                tableLayout.addView(tableRow);                      //строку ложим в таблицу
             }
         }
         catch (Exception e){
@@ -379,14 +380,12 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         super.onResume();
         Log.i(LOG_TAG, "onResume ");
 
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-
-        MainActivity.state = MainActivity.STATE_MAIN;
+        MainActivity.state = MainActivity.STATE_MAIN;           //сохраним состояние в MainActivity для востановления после поворота
 
 
         try{
             if(ServiceRoutes.brRegistered == false) {
-            getActivity().registerReceiver(br, new IntentFilter(UPDATED_DATA_ACTION));
+            getActivity().registerReceiver(br, new IntentFilter(UPDATED_DATA_ACTION));  //зарегистрируем приемник данных и событий с сервиса
             ServiceRoutes.brRegistered = true;
            }
         }
@@ -402,12 +401,12 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
         super.onDestroy();
 
        if( mRealm != null){
-           mRealm.close();
+           mRealm.close();                               //закроем соеденение с Realm
        }
 
         if (ServiceRoutes.brRegistered == true) {
             try {
-                getActivity().unregisterReceiver(br);
+                getActivity().unregisterReceiver(br);    //закроем соеденение с brRegistered
                 ServiceRoutes.brRegistered = false;
             } catch (IllegalArgumentException e) {
                 Log.d(LOG_TAG, "Error unregisterReceiver" + e.getMessage());
@@ -427,14 +426,14 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
     private void requestToServer(){
         String netType = getNetworkType(getContext());
 
-        if(netType == null){
+        if(netType == null){                        //если нет подключения к инету покажем сообщение
             Toast.makeText(getActivity(), "Подключение к сети отсутствует!", Toast.LENGTH_LONG).show();
         }
         else {
             progressDialog.show();
             Intent intent = new Intent(getActivity(), ServiceRoutes.class);
             intent.putExtra("task", TASK_UPDATE_DATA);
-            getActivity().startService(intent);
+            getActivity().startService(intent);     //запросим данные с сервера еще раз через сервис
         }
     }
 
@@ -446,7 +445,7 @@ public class MainFragment extends android.support.v4.app.Fragment implements Swi
             return activeNetwork.getTypeName();
         }
         return null;
-    }
+    }  //метод определяющий тип сети
 
     @Override
     public void onRefresh() {

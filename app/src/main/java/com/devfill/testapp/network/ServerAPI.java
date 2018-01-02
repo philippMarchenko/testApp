@@ -14,6 +14,6 @@ public interface ServerAPI {
 
 
     @GET("/web/index.php/api/trips")
-    Call<RouteModel> getRoutes(@Query(value = "text") String text);
+    Call<RouteModel> getRoutes(@Query(value = "text") String text); //GET запрос на сервер по данные маршрутов
 
 }

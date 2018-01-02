@@ -28,11 +28,12 @@ public class DetailFragment extends android.support.v4.app.Fragment {
 
     private int id = 0;
 
-    private DBHelper dbHelper;
+    private DBHelper dbHelper;      //для работы с SQLite
     private SQLiteDatabase db;
 
-    private Realm mRealm;
+    private Realm mRealm;           //для работы с Realm
 
+    //поля для данных о маршруте
     TextView id_route;
     TextView from_city_highlight;
     TextView from_city_id;
@@ -51,22 +52,21 @@ public class DetailFragment extends android.support.v4.app.Fragment {
     TextView bus_id;
     TextView reservation_count;
 
-    ViewGroup mContainer;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.datail_fragment, container, false);
-        mContainer = container;
-        id = getArguments().getInt("id");
-        MainActivity.current_id = id;
-        MainActivity.state = MainActivity.STATE_DETAIL;
 
-        initViews(rootView);
+        id = getArguments().getInt("id");                 //приймем ID маршрута
+        MainActivity.current_id = id;                     //сохраним в MainActivity для восстановления после поворота
+        MainActivity.state = MainActivity.STATE_DETAIL;   //сохраним в MainActivity состояние
 
-        dbHelper = new DBHelper(getContext());
+        initViews(rootView);                              //иниициализация вьюх
+
+        dbHelper = new DBHelper(getContext());             //иниициализация обьектов для работы с БД
         mRealm = Realm.getInstance(getContext());
 
 
-        switch (ServiceRoutes.type_db){
+        switch (ServiceRoutes.type_db){                    //в зависимости от типа БД запустим функции для отображения данных на экран
             case MainActivity.IDM_SQ_LITE:
                 try{
                     db = dbHelper.getWritableDatabase();
@@ -108,11 +108,11 @@ public class DetailFragment extends android.support.v4.app.Fragment {
 
     private void showDataRoute(int id) {
 
-        Cursor c = db.query("routes", null, null, null, null, null, null);
+        Cursor c = db.query("routes", null, null, null, null, null, null);              //создадим курсор
 
-        if (c.moveToPosition(id)) {
+        if (c.moveToPosition(id)) {                                                     //перейдем к нашему маршруту
 
-            int id_routeColIndex = c.getColumnIndex("id_route");
+            int id_routeColIndex = c.getColumnIndex("id_route");                        //
             int from_city_nameColIndex = c.getColumnIndex("from_city_name");
             int from_city_highlightColIndex = c.getColumnIndex("from_city_highlight");
             int from_city_idColIndex = c.getColumnIndex("from_city_id");
@@ -133,7 +133,7 @@ public class DetailFragment extends android.support.v4.app.Fragment {
             Log.i(LOG_TAG, "ID маршрута " + c.getInt(id_routeColIndex) );
 
 
-
+            //отображаем все данные
             id_route.setText("ID маршрута " + c.getInt(id_routeColIndex));
             from_city_highlight.setText("Highlight: " + c.getInt(from_city_highlightColIndex));
             from_city_id.setText("ID города: " + c.getInt(from_city_idColIndex));

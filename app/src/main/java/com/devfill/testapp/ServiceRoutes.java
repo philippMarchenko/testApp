@@ -35,21 +35,21 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ServiceRoutes extends Service {
 
     final String LOG_TAG = "serviceTag";
-    final String request_url = "from_date=2016-01-01&to_date=2018-03-01";
+    final String request_url = "from_date=2016-01-01&to_date=2018-03-01";       //параметры запроса
 
-    private DBHelper dbHelper;
+    private DBHelper dbHelper;                                                  //для работы с БД
     private SQLiteDatabase db;
 
     private Realm mRealm;
 
-    private Retrofit retrofit;
+    private Retrofit retrofit;                                                  //REST клиент
     private ServerAPI serverAPI;
 
-    public static boolean brRegistered = false;
+    public static boolean brRegistered = false;                                 //флаг регистрации приемника
 
-    public static final String TYPE_DB = "type_db";
+    public static final String TYPE_DB = "type_db";                             //для сохранения в SharedPref
 
-    public static int type_db = MainActivity.IDM_SQ_LITE;
+    public static int type_db = MainActivity.IDM_SQ_LITE;                       //здесь храним тип БД
 
 
 
@@ -60,14 +60,14 @@ public class ServiceRoutes extends Service {
 
         SharedPreferences mySharedPreferences = getBaseContext().getSharedPreferences(TYPE_DB,getBaseContext().MODE_PRIVATE);
 
-        type_db = mySharedPreferences.getInt("db_type",MainActivity.IDM_SQ_LITE);
+        type_db = mySharedPreferences.getInt("db_type",MainActivity.IDM_SQ_LITE);       //восстановим тим БД
         Log.d(LOG_TAG, "type_db " + type_db);
 
         dbHelper = new DBHelper(getBaseContext());
 
-        initRetrofit();
+        initRetrofit();                                                                //инициализация REST клиента
 
-        if(!isTableExists("routes",true)){
+        if(!isTableExists("routes",true)){                                             //если нет таблици то создадим ее
             try{
                 createTableSim(db);
             }
@@ -75,14 +75,14 @@ public class ServiceRoutes extends Service {
             }
         }
 
-        getRoutes();
+        getRoutes();                                                                    //запросим данные с сервера
 
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         int task = intent.getIntExtra("task",255);
 
-        if(task == MainFragment.TASK_UPDATE_DATA){
+        if(task == MainFragment.TASK_UPDATE_DATA){          //пришла команда с фрагмента запросить данные
             Log.d(LOG_TAG, " TASK_UPDATE_DATA ");
             getRoutes();
         }
@@ -98,12 +98,12 @@ public class ServiceRoutes extends Service {
                     @Override
                     public void onResponse(Call<RouteModel> call, Response<RouteModel> response) {
 
-                        RouteModel routeModel = response.body();
-                        final List<Data> dataList =  routeModel.getData();
+                        RouteModel routeModel = response.body();            //принали данные с сервера
+                        final List<Data> dataList =  routeModel.getData();  //получили список маршрутов
 
-                        if(dataList.size() > 0){
+                        if(dataList.size() > 0){                            //не пустой
 
-                            switch (type_db){
+                            switch (type_db){                               //в зависимости от типа БД сохраним список маршрутов
                                 case MainActivity.IDM_SQ_LITE:
                                     Thread t = new Thread(new Runnable() {
                                     @Override
@@ -129,13 +129,13 @@ public class ServiceRoutes extends Service {
 
                         }
                         else{
-                          sendEvent(getBaseContext(),MainFragment.EVENT_DATA_EMPTY,"");
+                          sendEvent(getBaseContext(),MainFragment.EVENT_DATA_EMPTY,"");         //список пуст , пошлем фрагменту об этом сообщение
                         }
                         Log.i(LOG_TAG, "size " + routeModel.getData().size() );
                     }
                     @Override
                     public void onFailure(Call<RouteModel> call, Throwable t) {
-                        sendEvent(getBaseContext(),MainFragment.EVENT_DATA_ERROR,t.getMessage());
+                        sendEvent(getBaseContext(),MainFragment.EVENT_DATA_ERROR,t.getMessage());   //ошибка загрузки с сервера , пошлем фрагменту об этом сообщение
                         Log.i(LOG_TAG, "onFailure. Ошибка REST запроса getListNews " + t.toString());
                     }
                 });
@@ -151,11 +151,11 @@ public class ServiceRoutes extends Service {
         mRealm.clear(DataRealm.class);
         mRealm.commitTransaction();
 
-        for(int i = 0; i < list.size(); i++){
+        for(int i = 0; i < list.size(); i++){           //переберем весь список маршрутов
 
-            mRealm.beginTransaction();
+            mRealm.beginTransaction();                  //начало транзакции Realm
 
-            DataRealm dataRealm = new DataRealm();
+            DataRealm dataRealm = new DataRealm();      //создадим обьект для Realm и заполним все поля
 
             dataRealm.setId_route(list.get(i).getId());
             dataRealm.setFrom_city_name(list.get(i).getFromCity().getName());
@@ -175,11 +175,11 @@ public class ServiceRoutes extends Service {
             dataRealm.setBus_id(list.get(i).getBusId());
             dataRealm.setReservation_coun(list.get(i).getReservationCount());
 
-            mRealm.copyToRealm(dataRealm);
+            mRealm.copyToRealm(dataRealm);                      //положим наш обьект в БД
 
-            mRealm.commitTransaction();
+            mRealm.commitTransaction();                         //подтвердим транзакцию
 
-            if(i == 200){
+            if(i == 200){                                       //когда загрузятся первіе 200 елементов, пошлем сообщение фрагменту для отображения
                 sendEvent(getBaseContext(),MainFragment.EVENT_DATA_UPDATED,"");
             }
             Log.d(LOG_TAG, "row inserted i " + i);
@@ -196,7 +196,7 @@ public class ServiceRoutes extends Service {
 
         ContentValues cv = new ContentValues();
 
-        for(int i = 0 ; i < list.size(); i ++){
+        for(int i = 0 ; i < list.size(); i ++){             //переберем весь список маршрутов
 
             cv.put("id_route", list.get(i).getId());
             cv.put("from_city_name", list.get(i).getFromCity().getName());
@@ -216,12 +216,12 @@ public class ServiceRoutes extends Service {
             cv.put("bus_id", list.get(i).getBusId());
             cv.put("reservation_count", list.get(i).getReservationCount());
 
-            long rowID = db.insert("" + "routes" + "", null, cv);
+            long rowID = db.insert("" + "routes" + "", null, cv);           //положим наш обьект в БД
             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
             cv.clear();
 
-            if(i == 200){
+            if(i == 200){                                       //когда загрузятся первіе 200 елементов, пошлем сообщение фрагменту для отображения
                 sendEvent(getBaseContext(),MainFragment.EVENT_DATA_UPDATED,"");
             }
 
@@ -230,7 +230,6 @@ public class ServiceRoutes extends Service {
     }
 
     private void cleanTable(String table) {
-
 
         try {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -242,9 +241,7 @@ public class ServiceRoutes extends Service {
         catch (Exception e ){
 
         }
-
-
-    }
+    }       //очистим таблицу по имени
 
     private void sendEvent (Context context,int event,String error) {
         Log.d(LOG_TAG, "sendEvent ");
@@ -258,9 +255,7 @@ public class ServiceRoutes extends Service {
         } catch (Error e) {
             e.printStackTrace();
         }
-
-
-    }
+    }   //передача в главный фрагмент сообщения и данных
 
     private void initRetrofit (){
 
@@ -280,7 +275,7 @@ public class ServiceRoutes extends Service {
                 .build();
 
         serverAPI = retrofit.create(ServerAPI.class);
-    }
+    }//инициализация клиента
 
     private void createTableSim(SQLiteDatabase db) {
 
@@ -307,7 +302,7 @@ public class ServiceRoutes extends Service {
 
         Log.d(LOG_TAG, "--- onCreate database ---");
 
-    }
+    }//инициализация таблицы
 
     private boolean isTableExists(String tableName, boolean openDb) {
         if (openDb) {
